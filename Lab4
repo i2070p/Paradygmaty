@@ -1,0 +1,243 @@
+// PPCP.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+#include <stdlib.h>
+#include <math.h>
+
+using namespace std;
+
+
+#define _pi_ 3.14
+
+struct urojona {
+	float x1u, x2u, su, ru, ilu, iru;
+};
+
+float sqroot(float n)
+{
+	float result;
+	__asm {	
+		mov eax, n
+			mov ebx, eax
+			mov [esp], eax
+			mov [esp+4H], ebx
+			mov cx, 10
+petla:
+		fld [esp]
+		fld [esp+4H]
+		fdiv
+			fld [esp+4H]
+		fadd
+			fld1
+			fld1
+			fadd
+			fdiv
+			fstp [esp+4H]
+		dec cx
+			jnz petla
+			mov ebx, [esp+4H]
+		mov result, ebx
+	}
+
+	return(result);
+}
+
+class rownanie {
+public:
+	rownanie(int _a, int _b, int _c): a(_a), b(_b), c(_c){};
+	~rownanie(){};
+	void formatuj_rownanie();
+	void oblicz_d();
+	void formatuj_zesp(float x1r, float x1u);
+
+	void oblicz_pierwiastki();
+	void postac_trygonometr(); 
+	void wczytaj();
+	void wyswietl();
+	void podziel();
+
+	void pomnoz();
+
+	void odejmij();
+
+	void dodaj();
+
+private:
+	int a,b,c;
+	float d, x1r, x2r, sr, rr, ilr, irr, mz1, mz2, fi1, fi2, z1mz2, z1dz2; 
+	urojona u;
+
+};
+
+
+
+
+
+void rownanie::formatuj_rownanie() {
+	if (a==1) cout << "x^2"; else if (a==-1) cout << "-x^2"; else if(a<0) cout << a << "x^2"; else if (a>0) cout << a << "x^2";
+	if (b==1) {if(a!=0) cout << "+x"; else cout << "x";}else if (b==-1) cout << "-x"; else if(b<0) cout << b <<"x"; else if (b>0) if (a!=0) cout << "+" << b << "x"; else cout << b << "x";
+	if(c<0) cout <<c; else if (c>0)  if (a!=0 || b!=0) cout << "+" <<c; else cout<<c;
+	if (a==0 && b==0 && c==0) cout << "0=0"; else cout << "=0";
+}
+
+void rownanie::oblicz_d() {
+	d=(float)b*b-(float)4*a*c;
+}
+
+
+void rownanie::formatuj_zesp(float x1r, float x1u) {
+	cout << endl;
+	if (x1r!=0) cout << x1r;
+	if (x1u>0 && x1r!=0) cout << "+" << x1u << "i"; else if(x1u>0)cout << "+" << x1u << "i";  else if (x1u<0)cout << x1u << "i"; 
+}
+
+void rownanie::oblicz_pierwiastki() {
+	if (a!=0) {
+		oblicz_d();
+		if (d>0) {
+			x1r=-b-sqroot(d)/(2*a);
+			x2r=-b+sqroot(d)/(2*a);
+			cout << "\n2 pierwiastki x1="<<x1r<<", x2="<<x2r;
+		} else if (d==0) {
+			x1r=-b/(2*a);
+			cout << "\n1 pierwiastek xo=" <<x1r;
+
+		} else {
+			x1r=(-b/(float)(2*a));
+			x2r=x1r;
+			float absd=d<0?-d:d;
+			u.x1u=-sqroot(absd)/(2* a);
+			u.x2u=- u.x1u;
+			cout << "\nPierwiastki zespolone:\n";
+			formatuj_zesp( x1r,  u.x1u);
+			formatuj_zesp( x2r,  u.x2u);
+		}
+	} else {
+		if ( b!=0) {
+			x1r=- c/ b; 
+			cout << "\nx1="<<x1r;
+		} else if( b==0 &&  c!=0) cout << "\nr.sprzeczne"; 
+		else if ( b==0 &&  c==0) cout << "\nrnieoznaczone"; 
+	}
+}
+
+void rownanie::dodaj() {
+	if ( d>0)  sr= x1r+ x2r; else if ( d<0) {
+		sr= x1r+ x2r;
+		u.su= u.x1u+ u.x2u;
+	}
+}
+
+void rownanie::odejmij() {
+	if ( d>0)  rr= x1r- x2r; else if ( d<0) {
+		rr= x1r- x2r;
+		u.ru= u.x1u- u.x2u;
+	}	
+}
+
+void rownanie::pomnoz() {
+	if ( d>0)  ilr= x1r*( x2r); else if ( d<0) {
+		ilr= x1r*( x2r)- u.x1u*( u.x2u);
+		u.ilu= u.x1u*( u.x2u)+ x2r*( u.x1u);
+	}		
+}
+
+void rownanie::podziel() {
+	if ( d>0)  irr= x1r/( x2r); else if ( d<0) {
+		irr=( x1r*( x2r)+ u.x1u*( u.x2u))/( x2r*( x2r)+ u.x2u*( u.x2u));
+		u.iru=( x2r*( u.x1u)- x1r*( u.x2u))/( x2r*( x2r)+ u.x2u*( u.x2u));
+	}		
+}
+
+void rownanie::wyswietl() {
+	if ( d<0 &&  a!=0 &&  b!=0) {
+		cout << "\nSuma";
+		formatuj_zesp( sr,  u.su);
+		cout << ("\nRoznica");
+		formatuj_zesp( rr,  u.ru);
+		cout << ("\nIloczyn");
+		formatuj_zesp( ilr,  u.ilu);
+		cout << ("\nIloraz");
+		formatuj_zesp( irr,  u.iru);
+		cout << endl <<mz1 << "(cos("<<fi1<<")+i*sin("<<fi1<<"))";
+		cout << endl <<mz2 << "(cos("<<fi2<<")+i*sin("<<fi2<<"))";
+		//cout << endl <<mz1<<"*"<<mz2 << "(cos("<<fi1<<+"+"<<fi2<<")+i*sin("<<fi1<<+"+"<<fi2<<"))="<<z1mz2;
+		//cout << endl <<mz1<<"/"<<mz2 << "(cos("<<fi1<<+"-"<<fi2<<")+i*sin("<<fi1<<+"-"<<fi2<<"))="<<z1dz2;
+		cout << endl <<"z1*z2="<<z1mz2 << "(cos("<<fi1+fi2<<")+i*sin("<<fi1+fi2<<"))";
+		cout << endl <<"z1/z2="<<z1dz2 << "(cos("<<fi1-fi2<<")+i*sin("<<fi1-fi2<<"))";
+	} else if ( d>0 &&  a!=0 &&  b!=0) {
+		cout << "\nSuma:" << sr<<endl;
+		cout << "Roznica:"<< rr<<endl;
+		cout << "Iloczyn:"<< ilr<<endl;
+		cout << "Iloraz:"<< irr<<endl;
+	}
+}
+
+void rownanie::postac_trygonometr() {
+	if ( a!=0) {
+		mz1=sqrt( x1r* x1r+ u.x1u* u.x1u);
+		mz2= mz1;
+
+		if ( x1r > 0) {
+			fi1=atan2( u.x1u,  x1r);	
+		} else if ( x1r<0 &&  u.x1u >=0) {
+			fi1=atan2( u.x1u,  x1r)+_pi_;	
+		} else if ( x1r < 0 &&  u.x1u < 0) {
+			fi1=atan2( u.x1u,  x1r)-_pi_;
+		} else if ( x1r == 0 &&  u.x1u >0) {
+			fi1=_pi_/2;
+		} else if ( x1r == 0 &&  u.x1u < 0) {
+			fi1=-_pi_/2;
+		}
+
+
+		if ( x2r > 0) {
+			fi2=atan2( u.x2u,  x2r);	
+		} else if ( x2r<0 &&  u.x2u >=0) {
+			fi2=atan2( u.x2u,  x2r)+_pi_;	
+		} else if ( x2r < 0 &&  u.x2u < 0) {
+			fi2=atan2( u.x2u,  x2r)-_pi_;
+		} else if ( x2r == 0 &&  u.x2u >0) {
+			fi2=_pi_/2;
+		} else if ( x2r == 0 &&  u.x2u < 0) {
+			fi2=-_pi_/2;
+		}
+
+		fi1=180/_pi_* fi1;
+		fi2=180/_pi_* fi2;
+		z1mz2=abs(mz1)*abs(mz2);
+		z1dz2=abs(mz1)/abs(mz2);
+	}
+
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	float a,b,c;
+
+
+	cin>>a;
+	cin>>b;
+	cin>>c;
+	rownanie* obj = new rownanie(a,b,c);
+	obj->formatuj_rownanie();
+	obj->oblicz_pierwiastki();
+
+
+	obj->dodaj();
+	obj->odejmij();
+	obj->pomnoz();
+	obj->podziel();
+
+	obj->postac_trygonometr();
+
+	obj->wyswietl();
+
+	delete(obj);
+
+	getchar(); getchar();
+	return 0;
+}
+
